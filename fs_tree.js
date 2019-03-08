@@ -6,6 +6,7 @@ const argv0 = process.argv[0];
 const argv1 = process.argv[1];
 const argv2 = process.argv[2];
 let excludeDir = ['node_modules', 'build', 'fonts'];
+let lastList = [];
 
 function exclude(dir) {
     return !excludeDir.some((word) => { return word == dir })
@@ -19,26 +20,73 @@ function getPath(myPath) {
     }
 }
 
-function formatTreeSymbol(deep) {
-    return deep > 0 ? new Array(deep - 1).fill('\t').join('') + '|---' : '|---';
+// function formatTreeSymbol(deep, last, plast) {
+//     // console.log('deep --->', deep, lastList.length);
+//     let sign = last ? "`--" : "|--";
+//     if (deep == 0) {
+//         return sign;
+//     }
+//     let prefix = (plast && deep > 2) ? `${new Array(deep - 2).fill('|\t').join('')}\t` : `${new Array(deep - 1).fill('|\t').join('')}`;
+//     return prefix + sign;
+// }
+
+function formatTreeSymbol(deep, last, plast) {
+    // let sign = last ? "`--" : "|--";
+    // console.log('deep --->', deep, lastList.length);
+    let formatStr = '';
+    let _lastList = lastList.concat(last)
+    for (let i = 1; i < _lastList.length; i++) {
+        let isLast = _lastList[i];
+        if (i < _lastList.length - 1) {
+            formatStr += isLast ? "\t" : "|\t";
+        } else {
+            formatStr += isLast ? "`--" : "|--";
+        }
+    }
+    // console.log('lastList ==>', lastList);
+    return formatStr;
 }
 
 
-function syncFile(absolutePath, fileName, deep) {
+function syncFile(absolutePath, fileName, deep, last, plast) {
     let filePath = absolutePath + '/' + fileName;
     filePath = filePath.replace(/\/\//g, '\/').replace(/\s+/g, '\\ ');
-    let _stateObj = syncFileType(fileName, filePath)
+    let _stateObj = syncFileType(fileName, filePath);
     let stat = _stateObj.stat;
-    console.log(formatTreeSymbol(deep), _stateObj.sign);
+    console.log(formatTreeSymbol(deep, last, plast), _stateObj.sign);
     if (stat && stat.isDirectory() && exclude(fileName)) {
         deep++;
+        lastList.push(last);
         let _files = fs.readdirSync(filePath, 'utf8');
-        _files.forEach((fd_name) => {
-            return syncFile(filePath, fd_name, deep);
+        _files.forEach((fd_name, index, arr) => {
+            // console.log('index, arr', index, arr.length, index == (arr.length - 1));
+            let _last = index == (arr.length - 1);
+            return syncFile(filePath, fd_name, deep, _last, last);
         })
+        lastList.pop(last);
         return deep--;
     }
 }
+
+
+// function syncFile(absolutePath, fileName, deep, last, plast) {
+//     let filePath = absolutePath + '/' + fileName;
+//     filePath = filePath.replace(/\/\//g, '\/').replace(/\s+/g, '\\ ');
+//     let _stateObj = syncFileType(fileName, filePath);
+//     let stat = _stateObj.stat;
+//     console.log(formatTreeSymbol(deep, last, plast), _stateObj.sign);
+//     if (stat && stat.isDirectory() && exclude(fileName)) {
+//         deep++;
+//         let _files = fs.readdirSync(filePath, 'utf8');
+//         _files.forEach((fd_name, index, arr) => {
+//             // console.log('index, arr', index, arr.length, index == (arr.length - 1));
+//             let _last = index == (arr.length - 1);
+//             return syncFile(filePath, fd_name, deep, _last, last);
+//         })
+//         return deep--;
+//     }
+// }
+
 
 function syncFileType(fileName, filePath) {
     let stat, sign;
@@ -76,4 +124,4 @@ function syncFileType(fileName, filePath) {
 
 }
 let _path = getPath(argv2);
-syncFile(_path, '', 0);
+syncFile(_path, '', 0, false);
