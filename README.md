@@ -11,6 +11,10 @@
 |CharacterDevice|steelblue|C|
 
 ```bash
+    node fs_tree.js ./
+```
+
+```bash
  /
 |-- .DS_Store [F]
 |-- Algorithm/

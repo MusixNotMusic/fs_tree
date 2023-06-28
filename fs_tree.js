@@ -5,7 +5,7 @@ const chalk = require('chalk');
 const argv0 = process.argv[0];
 const argv1 = process.argv[1];
 const argv2 = process.argv[2];
-let excludeDir = ['node_modules', 'build', 'fonts'];
+let excludeDir = ['build', 'fonts'];
 let lastList = [];
 
 function exclude(dir) {
