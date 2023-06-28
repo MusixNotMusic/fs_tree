@@ -11,7 +11,7 @@
 |CharacterDevice|steelblue|C|
 
 ```bash
-    node fs_tree.js ./
+node fs_tree.js ./
 ```
 
 ```bash
